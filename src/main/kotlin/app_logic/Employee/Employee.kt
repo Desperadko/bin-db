@@ -1,4 +1,4 @@
-package org.example
+package org.example.app_logic.Employee
 
 class Employee(name: String, employeeIndex: Int? = null){
     var employeeIndex: Int = employeeIndex ?: CURRENT_INDEX++

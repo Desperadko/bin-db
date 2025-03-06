@@ -1,26 +1,25 @@
-package org.example
+package org.example.app_logic.Employee
 
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
 
-data class EmployeeManager(val fileName: String) {
+object EmployeeRepository{
     private val employeesFile: RandomAccessFile
 
     private val blockToEmployeeMap: MutableMap<Long, Employee>
     private val indexToBlockMap: MutableMap<Int, Long>
     private val recentlyFreedPosition: ArrayDeque<Long>
 
-    companion object{
-        const val OUTPUT_FOLDER: String = "./OutputFolder"
-    }
+    private const val OUTPUT_FOLDER: String = "outputFolder"
+    private const val OUTPUT_FILE: String = "employees"
 
     init {
         val folder = File(OUTPUT_FOLDER);
         if(!folder.exists())
             folder.mkdirs()
 
-        val file = File(folder, fileName)
+        val file = File(folder, OUTPUT_FILE)
         employeesFile = RandomAccessFile(file, "rw")
 
         blockToEmployeeMap = mutableMapOf()
@@ -115,5 +114,8 @@ data class EmployeeManager(val fileName: String) {
     fun displayEmployees(){
         for(e in blockToEmployeeMap.values)
             println(e)
+    }
+    fun close(){
+        employeesFile.close()
     }
 }
