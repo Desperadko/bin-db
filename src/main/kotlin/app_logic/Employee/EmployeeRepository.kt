@@ -90,8 +90,11 @@ object EmployeeRepository{
         employeesFile.write(emptyBytes)
     }
     fun updateEmployee(employeeId: Int, employeeDto: EmployeeDto){
+        if(indexToBlockMap[employeeDto.index] != null)
+            throw Exception("Employee with ID: ${employeeDto.index} already exists..")
+
         val blockIndex = indexToBlockMap[employeeId] ?:
-            throw Exception("Employee with id: $employeeId does not exist..")
+            throw Exception("Employee with ID: $employeeId does not exist..")
 
         val employee = blockToEmployeeMap[blockIndex] ?:
             throw Exception("No employee was found in block: $blockIndex ..")

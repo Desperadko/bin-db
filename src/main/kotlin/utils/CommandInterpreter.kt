@@ -1,13 +1,20 @@
 package org.example.utils
 
-import org.example.app_logic.Employee.EmployeeManager
+import org.example.app_logic.Employee.EmployeeService
 
 object CommandInterpreter{
+    const val HELP_PROMPT: String =
+        "Current commands:\n" +
+                "hlp - View which entities have implemented commands\n" +
+                "hlp emp - View Employee commands\n" +
+                "WIP.."
+
     private val commands: Map<String, (List<String>) -> Unit> = mapOf(
         "add" to ::handleAddCommand,
         "rmv" to ::handleRemoveCommand,
-        "upt" to ::handleUpdateCommand,
-        "dsp" to ::handleDisplayCommand
+        "upd" to ::handleUpdateCommand,
+        "dsp" to ::handleDisplayCommand,
+        "hlp" to ::handleHelpCommand
     )
 
     private fun dissectInput(input: String): MutableList<String>{
@@ -45,8 +52,10 @@ object CommandInterpreter{
             return
         }
 
+        val commandSpecificArgs = args.drop(2)
+
         when(args[1]){
-            "emp" -> EmployeeManager.processAddCommand(args[2])
+            "emp" -> EmployeeService.processAddCommand(commandSpecificArgs)
             else -> {
                 println("No such entity type '${args[1]}'")
                 return
@@ -60,8 +69,10 @@ object CommandInterpreter{
             return
         }
 
+        val commandSpecificArgs = args.drop(2)
+
         when(args[1]){
-            "emp" -> EmployeeManager.processRemoveCommand(args[3])
+            "emp" -> EmployeeService.processRemoveCommand(commandSpecificArgs)
             else -> {
                 println("No such entity type '${args[1]}'")
                 return
@@ -75,8 +86,10 @@ object CommandInterpreter{
             return
         }
 
+        val commandSpecificArgs = args.drop(2)
+
         when(args[1]){
-            "emp" -> EmployeeManager.processUpdateCommand(args[2], args[3], args[4])
+            "emp" -> EmployeeService.processUpdateCommand(commandSpecificArgs)
             else -> {
                 println("No such entity type '${args[1]}'")
                 return
@@ -91,12 +104,29 @@ object CommandInterpreter{
         }
 
         when(args[1]){
-            "emp" -> EmployeeManager.processDisplayCommand()
+            "emp" -> EmployeeService.processDisplayCommand()
             else -> {
                 println("No such entity type '${args[1]}'")
                 return
             }
         }
+    }
+    private fun handleHelpCommand(args: List<String>){
+        if(args.count() > 2)
+        {
+            println("Too much arguments given. Try 'hlp'.")
+            return
+        }
+
+        when(args.lastOrNull()?.lowercase()){
+            "hlp" -> displayCommands()
+            "emp" -> EmployeeService.displayCommands()
+            else -> println("No such entity exists. Try 'hlp'.")
+        }
+    }
+
+    private fun displayCommands(){
+        println(HELP_PROMPT)
     }
 
     fun processCommand(userInput: String){

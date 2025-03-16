@@ -3,34 +3,32 @@ package org.example.utils
 import java.util.Scanner
 
 object InputValidator {
+    private val scanner: Scanner = Scanner(System.`in`)
+
     fun readValidStringInput(prompt: String, errorMsg: String): String{
-        Scanner(System.`in`).use { scanner ->
-            var result: String
+        var result: String
 
-            println(prompt)
+        print(prompt)
 
-            do{
-                result = scanner.nextLine().trim()
-                if(result.isBlank())
-                    println(errorMsg)
-            }while(result.isBlank())
+        do{
+            result = scanner.nextLine().trim()
+            if(result.isBlank())
+                println(errorMsg)
+        }while(result.isBlank())
 
-            return result
-        }
+        return result
     }
     fun readValidIntegerInput(prompt: String, errorMsg: String): Int{
-        Scanner(System.`in`).use { scanner ->
-            println(prompt)
+        println(prompt)
 
-            while(!scanner.hasNextInt()){
-                println(errorMsg)
-                scanner.nextLine()
-            }
-
-            val result: Int = scanner.nextInt()
+        while(!scanner.hasNextInt()){
+            println(errorMsg)
             scanner.nextLine()
-
-            return result
         }
+
+        val result: Int = scanner.nextInt()
+        scanner.nextLine()
+
+        return result
     }
 }
