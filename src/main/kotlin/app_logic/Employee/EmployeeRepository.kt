@@ -8,7 +8,7 @@ object EmployeeRepository{
     private val employeesFile: RandomAccessFile
 
     private val blockToEmployeeMap: MutableMap<Long, Employee>
-    private val indexToBlockMap: MutableMap<Int, Long>
+    private val employeeIndexToBlockMap: MutableMap<Int, Long>
     private val recentlyFreedPosition: ArrayDeque<Long>
 
     private const val OUTPUT_FOLDER: String = "outputFolder"
@@ -23,7 +23,7 @@ object EmployeeRepository{
         employeesFile = RandomAccessFile(file, "rw")
 
         blockToEmployeeMap = mutableMapOf()
-        indexToBlockMap = mutableMapOf()
+        employeeIndexToBlockMap = mutableMapOf()
         recentlyFreedPosition = ArrayDeque()
         if(file.exists()){
             loadLists()
@@ -55,7 +55,7 @@ object EmployeeRepository{
                 .toString(Charset.defaultCharset())
 
             blockToEmployeeMap[blockIndex] = Employee(employeeIndex, employeeName)
-            indexToBlockMap[employeeIndex] = blockIndex
+            employeeIndexToBlockMap[employeeIndex] = blockIndex
         }
     }
 
@@ -67,33 +67,31 @@ object EmployeeRepository{
         val blockIndex: Long = writePosition / (Employee.EMPLOYEE_SIZE + Long.SIZE_BYTES)
 
         blockToEmployeeMap[blockIndex] = employee
-        indexToBlockMap[employee.employeeIndex] = blockIndex
+        employeeIndexToBlockMap[employee.employeeIndex] = blockIndex
 
         employeesFile.seek(writePosition)
-        employeesFile.writeLong(blockIndex)
-        employeesFile.writeInt(employee.employeeIndex)
-        val nameInBytes = employee.employeeName.toByteArray(Charset.defaultCharset())
-        val paddedNameToMax = nameInBytes.copyOf(Employee.MAX_NAME_SIZE)
-        employeesFile.write(paddedNameToMax)
+        writeEmployeeBlockIndex(blockIndex, writePosition)
+        writeEmployeeIndex(employee, employeesFile.filePointer)
+        writeEmployeeName(employee, employeesFile.filePointer)
     }
     fun removeEmployee(employeeIndex: Int){
-        val employeesBlock = indexToBlockMap[employeeIndex]
+        val employeesBlock = employeeIndexToBlockMap[employeeIndex]
             ?: throw Exception("Employee with index: $employeeIndex does not exist..")
 
         recentlyFreedPosition.addLast(employeesBlock)
 
         blockToEmployeeMap.remove(employeesBlock)
-        indexToBlockMap.remove(employeeIndex)
+        employeeIndexToBlockMap.remove(employeeIndex)
 
         employeesFile.seek(employeesBlock * (Employee.EMPLOYEE_SIZE + Long.SIZE_BYTES))
         val emptyBytes = ByteArray(Employee.EMPLOYEE_SIZE + Long.SIZE_BYTES){ 0xFF.toByte() }
         employeesFile.write(emptyBytes)
     }
     fun updateEmployee(employeeId: Int, employeeDto: EmployeeDto){
-        if(indexToBlockMap[employeeDto.index] != null)
+        if(employeeId != employeeDto.index && employeeIndexToBlockMap[employeeDto.index] != null)
             throw Exception("Employee with ID: ${employeeDto.index} already exists..")
 
-        val blockIndex = indexToBlockMap[employeeId] ?:
+        val blockIndex = employeeIndexToBlockMap[employeeId] ?:
             throw Exception("Employee with ID: $employeeId does not exist..")
 
         val employee = blockToEmployeeMap[blockIndex] ?:
@@ -102,22 +100,30 @@ object EmployeeRepository{
         employee.employeeIndex = employeeDto.index
         employee.employeeName = employeeDto.name
 
-        employeesFile.seek(blockIndex * (Employee.EMPLOYEE_SIZE + Long.SIZE_BYTES) + Long.SIZE_BYTES)
-        employeesFile.writeInt(employee.employeeIndex)
-        val nameInBytes = employee.employeeName.toByteArray(Charset.defaultCharset())
-        val paddedNameToMax = nameInBytes.copyOf(Employee.MAX_NAME_SIZE)
-        employeesFile.write(paddedNameToMax)
-    }
-    fun getEmployee(employeeIndex: Int): Employee {
-        val blockIndex = indexToBlockMap[employeeIndex] ?:
-            throw Exception("Employee with index: $employeeIndex does not exist..")
-        return blockToEmployeeMap[blockIndex] ?:
-            throw Exception("No employee was found in block $blockIndex ..")
+        val writePosition = blockIndex * (Employee.EMPLOYEE_SIZE + Long.SIZE_BYTES) + Long.SIZE_BYTES
+        writeEmployeeIndex(employee, writePosition)
+        writeEmployeeName(employee, employeesFile.filePointer)
     }
     fun displayEmployees(){
         for(e in blockToEmployeeMap.values)
             println(e)
     }
+
+    private fun writeEmployeeBlockIndex(blockIndex: Long, writePosition: Long) {
+        employeesFile.seek(writePosition)
+        employeesFile.writeLong(blockIndex)
+    }
+    private fun writeEmployeeIndex(employee: Employee, writePosition: Long) {
+        employeesFile.seek(writePosition)
+        employeesFile.writeInt(employee.employeeIndex)
+    }
+    private fun writeEmployeeName(employee: Employee, writePosition: Long) {
+        employeesFile.seek(writePosition)
+        val nameInBytes = employee.employeeName.toByteArray(Charset.defaultCharset())
+        val paddedNameToMax = nameInBytes.copyOf(Employee.MAX_NAME_SIZE)
+        employeesFile.write(paddedNameToMax)
+    }
+
     fun close(){
         employeesFile.close()
     }

@@ -13,8 +13,4 @@ fun main() {
         input = InputValidator.readValidStringInput("user: ", "Cannot accept blank input.")
         CommandInterpreter.processCommand(input)
     }
-//    TODO("CLI DONE IN A WHILE(TRUE) LOOP - WIP")
-//    TODO("PROMPT WITH EVERY COMMAND - 1.GET 2.ADD ..")
-//    TODO("DONE LIKE NORMAL -> add --emp(loyee) `<employeeName>`")
-//    TODO("THIS WAY WILL BE LEFT ROOM FOR POTENTIAL -> add --dep(artment) `<departmentName>`")
 }

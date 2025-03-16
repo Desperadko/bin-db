@@ -4,7 +4,7 @@ object EmployeeService{
     const val HELP_COMMANDS: String =
         "Current Employee commands:\n" +
                 "add emp \"<employeeName>\" - Add employee\n" +
-                "emv emp <employeeId> - Remove employee\n" +
+                "rmv emp <employeeId> - Remove employee\n" +
                 "upd emp <currentEmployeeId> <newEmployeeId> \"<newEmployeeName>\" - Update employee\n" +
                 "dsp emp - Display all employees\n"
 
